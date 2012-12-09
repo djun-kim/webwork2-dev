@@ -2,6 +2,7 @@ package WWSafe;
 
 use 5.003_11;
 use strict;
+use WeBWorK::Debug;
 
 $Safe::VERSION = "2.16";
 
@@ -97,6 +98,7 @@ my $default_share = [qw[
 sub new {
     my($class, $root, $mask) = @_;
     my $obj = {};
+    debug("WWSafe: creating new safe compartment");
     bless $obj, $class;
 
     if (defined($root)) {
@@ -109,6 +111,8 @@ sub new {
 	$obj->{Root}  = "Safe::Root".$default_root++;
 	$obj->{Erase} = 1;
     }
+
+    debug("Set Root (".$obj->{Root}."), Erase (".$obj->{Erase}.")");
 
     # use permit/deny methods instead till interface issues resolved
     # XXX perhaps new Safe 'Root', mask => $mask, foo => bar, ...;
