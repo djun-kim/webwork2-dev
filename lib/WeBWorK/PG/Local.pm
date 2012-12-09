@@ -44,6 +44,8 @@ use WeBWorK::Utils qw(readFile writeTimingLogEntry);
 #use WeBWorK::Utils::RestrictedMailer;
 use WeBWorK::Utils::DelayedMailer;
 
+use WeBWorK::Debug;
+
 use mod_perl;
 use constant MP2 => ( exists $ENV{MOD_PERL_API_VERSION} and $ENV{MOD_PERL_API_VERSION} >= 2 );
 
@@ -66,6 +68,7 @@ sub alarm_handler {
 
 sub new {
 	my $invocant = shift;
+	debug("Local: invocant = $invocant");
 	local $SIG{ALRM} = \&alarm_handler;
 	alarm TIMEOUT;
 	my $result = eval { $invocant->new_helper(@_) };
@@ -92,9 +95,9 @@ sub new_helper {
 	) = @_;
 	
 	# write timing log entry
-# 	writeTimingLogEntry($ce, "WeBWorK::PG::new",
-# 		"user=".$user->user_id.",problem=".$ce->{courseName}."/".$set->set_id."/".$problem->problem_id.",mode=".$translationOptions->{displayMode},
-# 		"begin");
+ 	writeTimingLogEntry($ce, "WeBWorK::PG::new",
+ 		"user=".$user->user_id.",problem=".$ce->{courseName}."/".$set->set_id."/".$problem->problem_id.",mode=".$translationOptions->{displayMode},
+ 		"begin");
 	
 	# install a local warn handler to collect warnings  FIXME -- figure out what I meant to do here.
 	my $warnings = "";
@@ -103,6 +106,7 @@ sub new_helper {
 	
 	# create a Translator
 	#warn "PG: creating a Translator\n"; 
+	debug("Creating a Translator\n");
 	my $translator = WeBWorK::PG::Translator->new;
 	
 	# set the directory hash
@@ -216,8 +220,7 @@ sub new_helper {
 	# dangerousMacros.pl, IO.pl, PGbasicmacros.pl, and PGanswermacros.pl
 	# (Preloading the last two files safes a significant amount of time.)
 	# 
-	# IO.pl, PG.pl, and dangerousMacros.pl are loaded using
-	# unrestricted_load This is hard wired into the
+	# PG.pl is loaded using unrestricted_load This is hard wired into the
 	# Translator::pre_load_macro_files subroutine. I'd like to change this
 	# at some point to have the same sort of interface to defaults.config that
 	# the module loading does -- have a list of macros to load
@@ -254,13 +257,17 @@ sub new_helper {
     
 	# STANDARD LOADING CODE: for cached script files, this merely
 	# initializes the constants.
-	#2010 -- in the new scheme PG.pl is the only file guaranteed
-	# initialization -- it reads in everything that dangerous macros
-	# and IO.pl
-	# did before.  Mostly it just defines access to the PGcore object
+
+	# 2010 -- in the new scheme PG.pl is the only file guaranteed
+	# initialization. It reads in everything that dangerous macros
+	# and IO.pl did before.  Mostly it just defines access to the 
+        # PGcore object.
 	
-	# 2010 the loop is overkill since there is just one file, we'll leave it for now in case there are more.
-	foreach (qw(PG.pl )) {   # dangerousMacros.pl IO.pl
+	# 2010 the following 'foreach' loop is overkill since there is
+	# just one file, but we'll leave it for now in case there are
+	# more.
+
+	foreach (qw(PG.pl rserve.pl)) {   # dangerousMacros.pl IO.pl
 		my $macroPath = $ce->{pg}->{directories}->{macros} . "/$_";
 		my $err = $translator->unrestricted_load($macroPath);
 		warn "Error while loading $macroPath: $err" if $err;
@@ -301,7 +308,7 @@ sub new_helper {
 		$readErrors = $@ if $@;
 	 }
 	 
-	############################################################################
+    ############################################################################
     # put the source into the translator object
     ############################################################################
     
@@ -338,9 +345,9 @@ EOF
 	############################################################################
 	# write timing log entry -- the translator is now all set up
 	############################################################################
-# 	writeTimingLogEntry($ce, "WeBWorK::PG::new",
-# 		"initialized",
-# 		"intermediate");
+ 	writeTimingLogEntry($ce, "WeBWorK::PG::new",
+ 		"initialized",
+ 		"intermediate");
 	
 	############################################################################
 	# translate the PG source into text
@@ -508,7 +515,7 @@ default subroutine, &WeBWorK::PG::defineProblemEnvir, is used.
 
 Call &WeBWorK::PG::Translator::initialize. What more do you want?
 
-=item Load IO.pl, PG.pl and dangerousMacros.pl
+=item Load PG.pl
 
 These macros must be loaded without opcode masking, so they are loaded here.
 
