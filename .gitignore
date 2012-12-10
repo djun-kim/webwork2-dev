@@ -4,7 +4,9 @@
 .*
 *~
 *.save
+courses
 htdocs/tmp/*
+htdocs/jsMath/*
 tmp/*
 logs/*
 conf/*.conf
