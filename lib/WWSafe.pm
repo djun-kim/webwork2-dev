@@ -104,6 +104,8 @@ sub new {
     if (defined($root)) {
 	croak "Can't use \"$root\" as root name"
 	    if $root =~ /^main\b/ or $root !~ /^\w[:\w]*$/;
+	debug "Can't use \"$root\" as root name"
+	    if $root =~ /^main\b/ or $root !~ /^\w[:\w]*$/;
 	$obj->{Root}  = $root;
 	$obj->{Erase} = 0;
     }

@@ -267,7 +267,7 @@ sub new_helper {
 	# just one file, but we'll leave it for now in case there are
 	# more.
 
-	foreach (qw(PG.pl rserve.pl)) {   # dangerousMacros.pl IO.pl
+	foreach (qw(PG.pl)) {   # dangerousMacros.pl IO.pl
 		my $macroPath = $ce->{pg}->{directories}->{macros} . "/$_";
 		my $err = $translator->unrestricted_load($macroPath);
 		warn "Error while loading $macroPath: $err" if $err;
